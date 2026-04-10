@@ -1,5 +1,7 @@
 name: CI devops 2025
+
 on:
+  # Trigger the pipeline on every push to main or develop branches
   push:
     branches:
       - main
@@ -12,11 +14,54 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Install Java 21
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
+      # Build the app and run unit tests
       - name: Build and test with Maven
         run: mvn clean verify --file backend/pom.xml
+
+  # Build and publish Docker images only after tests pass
+  build-and-push-docker-image:
+    needs: test-backend
+    # Run only when code is compiling and tests are passing
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Login to Docker Hub using secured GitHub secrets
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Build and push the backend image (Dockerfile is inside backend/)
+      - name: Build image and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-simple-api:latest
+
+      # Build and push the database image (Dockerfile is at the root)
+      - name: Build image and push database
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-database:latest
+
+      # Build and push the httpd image (Dockerfile is inside http-server/)
+      - name: Build image and push httpd
+        uses: docker/build-push-action@v6
+        with:
+          context: ./http-server
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:latest
