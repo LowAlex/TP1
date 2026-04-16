@@ -48,7 +48,9 @@ jobs:
         with:
           context: ./backend
           push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-simple-api:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-simple-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-simple-api:${{ github.sha }}
 
       # Build and push the database image (Dockerfile is at the root)
       - name: Build image and push database
@@ -56,7 +58,9 @@ jobs:
         with:
           context: .
           push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-database:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-database:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-database:${{ github.sha }}
 
       # Build and push the httpd image (Dockerfile is inside http-server/)
       - name: Build image and push httpd
@@ -64,4 +68,6 @@ jobs:
         with:
           context: ./http-server
           push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:${{ github.sha }}
