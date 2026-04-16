@@ -21,7 +21,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # Build the app and run unit + integration tests
+      # Build the app and run unit + integration test
       - name: Build and test with Maven
         run: mvn clean verify --file backend/pom.xml
 
