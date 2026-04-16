@@ -1,7 +1,7 @@
-name: CI devops 2025
+name: CI - Test Backend
 
 on:
-  # Trigger the pipeline on every push to main or develop branches
+  # Run tests on every push to main and develop
   push:
     branches:
       - main
@@ -9,7 +9,6 @@ on:
   pull_request:
 
 jobs:
-  # Step 1 — Build and run tests, then upload results for sonar
   test-backend:
     runs-on: ubuntu-24.04
     steps:
@@ -33,7 +32,7 @@ jobs:
           name: backend-target
           path: backend/target/
 
-  # Step 2 — Analyze code quality with SonarCloud (needs test results)
+  # Analyze code quality with SonarCloud (needs test results)
   sonar-analysis:
     needs: test-backend
     runs-on: ubuntu-24.04
@@ -56,71 +55,3 @@ jobs:
       # Run SonarCloud analysis using existing test results
       - name: SonarCloud analysis
         run: mvn -B sonar:sonar -Dsonar.projectKey=LowAlex_TP1 -Dsonar.organization=lowalex -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} --file backend/pom.xml
-
-  # Step 3 — Build and push images in parallel (only after tests pass)
-  push-backend:
-    needs: test-backend
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build image and push backend
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-simple-api:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-simple-api:${{ github.sha }}
-
-  push-database:
-    needs: test-backend
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build image and push database
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-database:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-database:${{ github.sha }}
-
-  push-httpd:
-    needs: test-backend
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build image and push httpd
-        uses: docker/build-push-action@v6
-        with:
-          context: ./http-server
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:${{ github.sha }}
-
