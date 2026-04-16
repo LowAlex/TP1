@@ -21,9 +21,9 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # Build the app and run unit tests
+      # Build the app, run tests and analyze code quality with SonarCloud
       - name: Build and test with Maven
-        run: mvn clean verify --file backend/pom.xml
+        run: mvn -B verify sonar:sonar -Dsonar.projectKey=LowAlex_TP1 -Dsonar.organization=lowalex -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} --file backend/pom.xml
 
   # Build and publish Docker images only after tests pass
   build-and-push-docker-image:
