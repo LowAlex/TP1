@@ -1,0 +1,14 @@
+---
+- name: Run httpd proxy container
+  community.docker.docker_container:
+    name: httpd
+    image: "{{ dockerhub_username }}/tp-devops-httpd:latest"
+    pull: true
+    networks:
+      - name: app-network
+    ports:
+      - "80:80"
+    restart_policy: unless-stopped
+    state: started
+  vars:
+    ansible_python_interpreter: /opt/docker_venv/bin/python
