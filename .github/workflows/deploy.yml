@@ -77,8 +77,30 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:${{ github.sha }}
 
+  push-front:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build image and push front
+        uses: docker/build-push-action@v6
+        with:
+          context: ./front
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-front:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-front:${{ github.sha }}
+
   deploy:
-    needs: [push-backend, push-database, push-httpd]
+    needs: [push-backend, push-database, push-httpd, push-front]
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-24.04
     steps:
