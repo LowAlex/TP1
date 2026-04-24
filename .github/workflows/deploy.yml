@@ -99,31 +99,3 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-front:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-front:${{ github.sha }}
 
-  deploy:
-    needs: [push-backend, push-database, push-httpd, push-front]
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Ansible
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ansible
-          ansible-galaxy collection install community.docker
-
-      - name: Write SSH private key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa_takima
-          chmod 600 ~/.ssh/id_rsa_takima
-          ssh-keyscan -H alexan.leblois.takima.school >> ~/.ssh/known_hosts
-
-      - name: Run Ansible playbook
-        env:
-          ANSIBLE_HOST_KEY_CHECKING: "false"
-        run: |
-          cd ansible
-          ansible-playbook -i inventories/setup.yml playbook.yml
-
