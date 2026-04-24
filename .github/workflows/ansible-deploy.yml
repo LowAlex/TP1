@@ -39,9 +39,15 @@ jobs:
           chmod 600 ~/.ssh/id_rsa_takima
           ssh-keyscan -H alexan.leblois.takima.school >> ~/.ssh/known_hosts
 
+      - name: Write Ansible Vault password
+        run: |
+          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > ~/.vault_pass
+          chmod 600 ~/.vault_pass
+
       - name: Run Ansible playbook
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
         run: |
           cd ansible
-          ansible-playbook -i inventories/setup.yml playbook.yml
+          ansible-playbook -i inventories/setup.yml playbook.yml \
+            --vault-password-file ~/.vault_pass

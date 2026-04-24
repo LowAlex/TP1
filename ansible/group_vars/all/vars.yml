@@ -1,0 +1,9 @@
+---
+# Variables non sensibles (versionnees en clair dans Git)
+dockerhub_username: lowalex
+
+postgres_db: db
+postgres_user: usr
+
+# Les variables sensibles sont definies dans vault.yml (chiffre)
+postgres_password: "{{ vault_postgres_password }}"

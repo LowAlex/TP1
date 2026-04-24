@@ -1,6 +1,0 @@
----
-dockerhub_username: lowalex
-
-postgres_db: db
-postgres_user: usr
-postgres_password: pwd
